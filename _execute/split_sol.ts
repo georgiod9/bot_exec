@@ -14,6 +14,7 @@ export async function splitSol(orderId: number, funding: number) {
         console.log('-------------------------------------------------------------')
         let i
         for (i = 0; i < botsPk.length; i++) {
+            console.log(`Bot secret key: `,)
             const tx = await send(BOT_SECRET_KEY, funding / botsPk.length, botsPk[i])
             console.log("\u001b[1;32m" + '> SUCCESS ' + "\u001b[0m" + `sending ${funding / botsPk.length} SOL to ${botsPk[i]}`);
             console.log("\u001b[1;34m" + '> TX ' + "\u001b[0m" + tx)

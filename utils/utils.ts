@@ -20,7 +20,9 @@ export const getEnv = (varName: any) => {
 
 export const connectDB = async () => {
     try {
+        console.log(`Connecting to mongo..`)
         await mongoose.connect(MONGODB_URI)
+        console.log(`Connected to mongodb.`)
     } catch (e) {
         console.log("\u001b[1;31m" + 'ERROR ' + "\u001b[0m" + 'DB / CONNEXION ERROR =', e)
     }
@@ -168,7 +170,7 @@ export const sendSPL = async (senderPubKey: string, senderPrivateKey: string, cl
 }
 
 export async function getCoinData(tokenAddr: string) {
-    const res = await axios.get(`https://client-api-2-74b1891ee9f9.herokuapp.com/coins/${tokenAddr}`)
+    const res = await axios.get(`https://frontend-api.pump.fun/coins/${tokenAddr}`)
     const data = res.data
     if (data) return data
     else return null
