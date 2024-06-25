@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  bumper-bot:
+    build: .
+    image: bumper-bot
+    ports:
+      - "8080:8080"
+    environment:
+      - DECRYPT_PASSWORD='SimplePassword'
+      - MONGODB_URI='mongodb://127.0.0.1:27017/bot-main-db'
+      - REDIS_HOST='127.0.0.1'
+      - REDIS_PORT='6379'
+      - REDIS_PASSWORD=''
+      - BOT_PUBLIC_KEY='3zzeM1CvroTufypUduFM1t1DvPkJwNJ7BQZHz7PoKJwJ'
+      - BOT_SECRET_KEY='4h8924RYqWTtQ3boCCF1RzCWD7bp8wR4vQiTC7H8GdEpThex7UkiGmjxHjFH3Vd6yfWTUq48Ayuugb8Er2j4DfD2'
+      - PRIORITY_FEE=0.0005
+      - RPC='https://thrilling-orbital-model.solana-mainnet.quiknode.pro/3ece94e189b82ceca072c6ac7f3b3d09e6504463/'
+      - RPC_TX='https://thrilling-orbital-model.solana-mainnet.quiknode.pro/3ece94e189b82ceca072c6ac7f3b3d09e6504463/'
