@@ -4,3 +4,6 @@ package-lock.json
 /_src
 test2.ts
 pk.txt
+private_readme.md
+
+.global-bundle.pem
