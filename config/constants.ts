@@ -33,6 +33,7 @@ export const NETWORK = 'mainnet-beta'
 export const RPC = getEnv('RPC')
 export const RPC_TX = getEnv('RPC_TX')
 export const PRIORITY_FEE = parseFloat(getEnv('PRIORITY_FEE'))
+export const MAX_RETRIES_SEND_AND_CONFIRM = parseFloat(getEnv("MAX_RETRIES_SEND_AND_CONFIRM"))
 
 // SOLANA DEVNET - NETWORK CONFIG
 // export const NETWORK = 'devnet'

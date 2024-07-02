@@ -1,6 +1,6 @@
 import { PublicKey, Account, Connection, Keypair, Transaction, SystemProgram, ComputeBudgetProgram, PublicKeyInitData, LAMPORTS_PER_SOL, sendAndConfirmTransaction, TransactionInstruction } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID, createAssociatedTokenAccountInstruction, getAccount, getAssociatedTokenAddress, transfer } from '@solana/spl-token';
-import { MONGODB_URI, DECRYPT_PASSWORD, RPC } from '../config'
+import { MONGODB_URI, DECRYPT_PASSWORD, RPC, MAX_RETRIES_SEND_AND_CONFIRM } from '../config'
 import Wallet, { IWallet } from '../models/wallet';
 import Order, { IOrder } from '../models/order';
 import { CoinData } from './types';
@@ -21,7 +21,10 @@ export const getEnv = (varName: any) => {
 export const connectDB = async () => {
     try {
         console.log(`Connecting to mongo..`)
-        await mongoose.connect(MONGODB_URI)
+        await mongoose.connect(MONGODB_URI,
+            {
+                tlsCAFile: `./global-bundle.pem`
+            },)
         console.log(`Connected to mongodb.`)
     } catch (e) {
         console.log("\u001b[1;31m" + 'ERROR ' + "\u001b[0m" + 'DB / CONNEXION ERROR =', e)
@@ -71,6 +74,7 @@ export async function getWalletSkForOrderId(OrderId: number) {
 }
 
 export async function decrypt(sk: any) {
+    console.log(`Decrypting sk: `, sk)
     const algorithm = 'aes-256-cbc';
     const key = crypto.createHash('sha256').update(DECRYPT_PASSWORD).digest('base64').substr(0, 32);
     const textParts = sk.split(':');
@@ -211,7 +215,7 @@ export async function sendTransactionWrapper(transaction: Transaction, signers: 
 
 export async function sendAndConfirmTransactionWrapper(connection: Connection, transaction: Transaction, signers: any[]) {
     try {
-        const signature = await sendAndConfirmTransaction(connection, transaction, signers, { skipPreflight: true, preflightCommitment: 'singleGossip' })
+        const signature = await sendAndConfirmTransaction(connection, transaction, signers, { skipPreflight: true, preflightCommitment: 'singleGossip', maxRetries: MAX_RETRIES_SEND_AND_CONFIRM })
         console.log("> " + "\u001b[1;32m" + 'CONFIRMED TX ' + "\u001b[0m" + signature)
         return signature
     } catch (error) {
