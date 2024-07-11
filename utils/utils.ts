@@ -18,21 +18,33 @@ export const getEnv = (varName: any) => {
     return variable;
 }
 
+
+export let isMongoConnected = false;
 export const connectDB = async () => {
     try {
-        console.log(`Connecting to mongo..`)
+        if (isMongoConnected) {
+            console.log('> Database already connected. Using existing database connection');
+            return;
+        }
+        console.log(`Connecting to db....`, MONGODB_URI)
         await mongoose.connect(MONGODB_URI,
             {
                 tlsCAFile: `./global-bundle.pem`
-            },)
-        console.log(`Connected to mongodb.`)
+            },
+        )
+        isMongoConnected = true;
+        console.log(`Mongo db connected.`)
     } catch (e) {
         console.log("\u001b[1;31m" + 'ERROR ' + "\u001b[0m" + 'DB / CONNEXION ERROR =', e)
     }
 }
 
+
 export async function getWalletPkForOrderId(OrderId: number) {
-    await connectDB()
+    // await connectDB()
+    if (!isMongoConnected) {
+        await connectDB()
+    }
     const order = await Order.findOne({ id: OrderId })
     if (order) {
         let i
@@ -45,7 +57,10 @@ export async function getWalletPkForOrderId(OrderId: number) {
 }
 
 export async function getClientForOrderId(OrderId: number) {
-    await connectDB()
+    // await connectDB()
+    if (!isMongoConnected) {
+        await connectDB()
+    }
     const order = await Order.findOne({ id: OrderId })
     if (order) {
         return order.client
@@ -53,7 +68,10 @@ export async function getClientForOrderId(OrderId: number) {
 }
 
 export async function getTokenAddrForOrderId(OrderId: number) {
-    await connectDB()
+    // await connectDB()
+    if (!isMongoConnected) {
+        await connectDB()
+    }
     const order = await Order.findOne({ id: OrderId })
     if (order) {
         return order.token
@@ -61,7 +79,10 @@ export async function getTokenAddrForOrderId(OrderId: number) {
 }
 
 export async function getWalletSkForOrderId(OrderId: number) {
-    await connectDB()
+    // await connectDB()
+    if (!isMongoConnected) {
+        await connectDB()
+    }
     const order = await Order.findOne({ id: OrderId })
     if (order) {
         let i

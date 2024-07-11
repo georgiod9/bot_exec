@@ -1,9 +1,8 @@
 import { setOrderLive, splitSol, buyToken, buyTokenRandom, sellTokenRandom, withdrawAll, setOrderFinished } from "./_execute";
 import { REDIS_HOST, REDIS_PORT, REDIS_PASSWORD, MONGODB_URI } from "./config";
 import Bull from "bull";
-import StatusMod from "./models/status";
 import Order from "./models/order";
-import { connectDB } from "./utils";
+import { connectDB, isMongoConnected } from "./utils";
 
 const redisOptions = { redis: { host: REDIS_HOST, port: parseInt(REDIS_PORT, 10), password: REDIS_PASSWORD, keyPrefix: "{bump}:" } }
 const bumpQueue = new Bull("bump", redisOptions)
@@ -30,6 +29,9 @@ async function checkQueueLength() {
 async function main() {
     // await clearQueue();
     await checkQueueLength();
+    if (!isMongoConnected) {
+        await connectDB();
+    }
 
     console.log(`EXECUTOR RUNNING`)
     console.log('-------------------------------------------------------------')
