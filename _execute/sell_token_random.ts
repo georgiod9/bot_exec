@@ -23,17 +23,20 @@ export async function sellTokenRandom(skcrypted: string, token: string) {
         const mint = new PublicKey(token)
         const txBuilder = new Transaction()
 
-        const tknBal = await getSPLBalance(token, owner.toString())
+        const tknBal = await getSPLBalance(token, owner.toString()) // Balance in uiAmount
         if (tknBal == 0) {
             console.log('> Token balance is 0, a past buy transaction have probably failed.')
         }
-        // console.log(tknBal)
+        console.log(`Retrieved token balance for account ${payer.publicKey}: `, tknBal)
         // const tokenBalanceInt = Math.round(tknBal * 1000000)
-        const minValue = tknBal * 1000
-        const maxValue = tknBal * 1000000
+        // const minValue = tknBal * 1000
+        // const maxValue = tknBal * 1000000
+        const minValue = tknBal * 0.2;
+        const maxValue = tknBal * 0.8;
         const tokenBalanceRandom = Math.random() * (maxValue - minValue) + minValue
-        const tokenBalanceInt = Math.round(tokenBalanceRandom)
+        const tokenBalanceInt = Math.round(tokenBalanceRandom * 1e6) // Convert to integer units
         const tokenBalance = tokenBalanceInt
+        console.log(`Token amount to sell (random) for ${payer.publicKey}: `, tokenBalance)
 
         const tokenAccountAddress = await getAssociatedTokenAddress(mint, owner, false)
 
@@ -54,6 +57,7 @@ export async function sellTokenRandom(skcrypted: string, token: string) {
 
         const minSolOutput = Math.floor(tokenBalance! * (1 - slippageDecimal) * coinData["virtual_sol_reserves"] / coinData["virtual_token_reserves"])
 
+        console.log(`Token mininum Solana tokens out: `, minSolOutput);
         const keys = [
             { pubkey: GLOBAL, isSigner: false, isWritable: false },
             { pubkey: FEE_RECIPIENT, isSigner: false, isWritable: true },

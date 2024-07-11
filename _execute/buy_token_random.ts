@@ -27,13 +27,15 @@ export async function buyTokenRandom(skcrypted: string, token: string) {
             console.log('> Solana balance is 0.')
             return
         }
-        const minValue = solBal * 0.25
-        const maxValue = solBal * 0.85
+        console.log(`Solana balance for address ${payer.publicKey}: `, solBal)
+        const minValue = solBal * 0.1
+        const maxValue = solBal * 0.5
         const solRandom = Math.random() * (maxValue - minValue) + minValue
         const solBalInt = Math.round(solRandom)
         const solIn = solBalInt / 1000000000
 
-        console.log(solIn)
+        // console.log(solIn)
+        console.log(`Solana amount to buy with (random) for ${payer.publicKey}: `, solIn)
 
         const tokenAccountInfo = await connection.getAccountInfo(tokenAccountAddress)
         let tokenAccount: PublicKey
