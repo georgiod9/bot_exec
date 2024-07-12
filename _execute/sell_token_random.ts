@@ -2,7 +2,7 @@ import { decrypt, getCoinData, createTransaction, sendAndConfirmTransactionWrapp
 import { Connection, PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js';
 import { getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { RPC_TX, GLOBAL, FEE_RECIPIENT, SYSTEM_PROGRAM_ID, PUMP_FUN_ACCOUNT, PUMP_FUN_PROGRAM, ASSOC_TOKEN_ACC_PROG, PRIORITY_FEE } from '../config';
-import { LOW_BALANCE_THRESHOLD } from "../main";
+import { LOW_BALANCE_THRESHOLD, removeTasksForBot } from "../main";
 import { buyTokenRandom } from "./buy_token_random";
 import { withdrawOne } from "./withdraw_one";
 
@@ -44,8 +44,14 @@ export async function sellTokenRandom(skcrypted: string, token: string, initialB
                     console.log(`[${payer.publicKey}] Stopping bot for wallet.`)
                     console.log(`----------------------------------------------`);
 
+                    // Remove the redis tasks
+                    await removeTasksForBot(orderId, skcrypted);
+
                     // WITHDRAW LOGIC FOR THIS WALLET
                     await withdrawOne(orderId, payer.publicKey.toString());
+                    console.log(`[${payer.publicKey}] Removing tasks for bot.`)
+
+
                     return;
                 }
                 console.log(`[${payer.publicKey}] Available token balance:`, tokenBalance);

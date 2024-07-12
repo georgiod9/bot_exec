@@ -18,7 +18,6 @@ export const getEnv = (varName: any) => {
     return variable;
 }
 
-
 export let isMongoConnected = false;
 export const connectDB = async () => {
     try {

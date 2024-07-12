@@ -25,6 +25,38 @@ async function checkQueueLength() {
     console.log(`Waiting: ${waitingCount}, Active: ${activeCount}, Completed: ${completedCount}, Failed: ${failedCount}, Delayed: ${delayedCount}`);
 }
 
+async function removeTasksForOrderId(orderID: number) {
+    let delay = 1000
+    const alltasks = await bumpQueue.getJobs(["delayed", "active", "waiting", "completed"])
+    const tasksok = alltasks.filter(task => task.data.orderId === `#${orderID.toString()}`)
+    for (const task of tasksok) {
+        await task.remove()
+    }
+    console.log("\u001b[1;32m" + 'SUCCESS ' + "\u001b[0m" + `removing ${tasksok.length} tasks for order ID #${orderID.toString()}`)
+    console.log('-------------------------------------------------------------')
+    console.log(`> Initiating emergency withdrawal for order #${orderID}...`)
+    bumpQueue.add({ task: "withdraw", orderId: `#${orderID.toString()}`, param: orderID }, { delay })
+    console.log('-------------------------------------------------------------')
+    console.log("\u001b[1;32m" + 'SUCCESS ' + "\u001b[0m" + `withdrawal initiated for order ID #${orderID.toString()}`)
+}
+
+export async function removeTasksForBot(orderID: number, botEncryptedSK: string) {
+    let delay = 1000
+    const alltasks = await bumpQueue.getJobs(["delayed", "active", "waiting", "completed"])
+    const tasksok = alltasks.filter(task => task.data.orderId === `#${orderID.toString()}`)
+    const botTasks = tasksok.filter(task => task.data.skcrypted === botEncryptedSK);
+    for (const task of botTasks) {
+        await task.remove()
+    }
+    console.log("\u001b[1;32m" + 'SUCCESS ' + "\u001b[0m" + `removing ${tasksok.length} tasks for order ID #${orderID.toString()} Bot PubKey`)
+    console.log('-------------------------------------------------------------')
+    console.log(`> Initiating emergency withdrawal for order #${orderID}...`)
+    bumpQueue.add({ task: "withdraw", orderId: `#${orderID.toString()}`, param: orderID }, { delay })
+    console.log('-------------------------------------------------------------')
+    console.log("\u001b[1;32m" + 'SUCCESS ' + "\u001b[0m" + `withdrawal initiated for order ID #${orderID.toString()}`)
+}
+
+
 export const LOW_BALANCE_THRESHOLD = 0.1; // 10% of initial balance
 
 async function main() {
