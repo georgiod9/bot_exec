@@ -25,6 +25,7 @@ async function checkQueueLength() {
     console.log(`Waiting: ${waitingCount}, Active: ${activeCount}, Completed: ${completedCount}, Failed: ${failedCount}, Delayed: ${delayedCount}`);
 }
 
+export const LOW_BALANCE_THRESHOLD = 0.1; // 10% of initial balance
 
 async function main() {
     // await clearQueue();
@@ -45,9 +46,9 @@ async function main() {
             } else if (order.data.task === 'buy_token') {
                 await buyToken(order.data.skcrypted, order.data.token, order.data.amountSol)
             } else if (order.data.task === 'buy_token_random') {
-                await buyTokenRandom(order.data.skcrypted, order.data.token)
+                await buyTokenRandom(order.data.skcrypted, order.data.token, order.data.initialBalance, order.data.param)
             } else if (order.data.task === 'sell_token_random') {
-                await sellTokenRandom(order.data.skcrypted, order.data.token)
+                await sellTokenRandom(order.data.skcrypted, order.data.token, order.data.initialBalance, order.data.param)
             } else if (order.data.task === 'withdraw') {
                 await withdrawAll(order.data.param)
             } else if (order.data.task === 'set_order_status_finished') {

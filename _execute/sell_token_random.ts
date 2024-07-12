@@ -1,10 +1,13 @@
-import { decrypt, getCoinData, createTransaction, sendAndConfirmTransactionWrapper, sendTransactionWrapper, bufferFromUInt64, getKeyPairFromPrivateKey, TransactionMode, getSPLBalance } from "../utils"
+import { decrypt, getCoinData, createTransaction, sendAndConfirmTransactionWrapper, sendTransactionWrapper, bufferFromUInt64, getKeyPairFromPrivateKey, TransactionMode, getSPLBalance, calculateTokenPriceInSol, getSolBal } from "../utils"
 import { Connection, PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js';
 import { getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { RPC_TX, GLOBAL, FEE_RECIPIENT, SYSTEM_PROGRAM_ID, PUMP_FUN_ACCOUNT, PUMP_FUN_PROGRAM, ASSOC_TOKEN_ACC_PROG, PRIORITY_FEE } from '../config';
+import { LOW_BALANCE_THRESHOLD } from "../main";
+import { buyTokenRandom } from "./buy_token_random";
+import { withdrawOne } from "./withdraw_one";
 
 
-export async function sellTokenRandom(skcrypted: string, token: string) {
+export async function sellTokenRandom(skcrypted: string, token: string, initialBalance: number, orderId: number, isReplenish?: boolean) {
     try {
         const transactionMode = TransactionMode.Execution
         const priorityFeeInSol = PRIORITY_FEE
@@ -13,6 +16,7 @@ export async function sellTokenRandom(skcrypted: string, token: string) {
         const connection = new Connection(RPC_TX, 'confirmed')
 
         const coinData = await getCoinData(token);
+
         if (!coinData) {
             console.error('> Failed to retrieve coin data...')
             return
@@ -24,8 +28,30 @@ export async function sellTokenRandom(skcrypted: string, token: string) {
         const txBuilder = new Transaction()
 
         const tknBal = await getSPLBalance(token, owner.toString()) // Balance in uiAmount
+        const tokenPrice = calculateTokenPriceInSol(coinData["virtual_sol_reserves"], coinData["virtual_token_reserves"]);
+
         if (tknBal == 0) {
             console.log('> Token balance is 0, a past buy transaction have probably failed.')
+        }
+        else if (tknBal * tokenPrice < initialBalance * LOW_BALANCE_THRESHOLD) {
+            console.log(`[${payer.publicKey}] Token balance is less than allowed threshold. Buying the token instead.`)
+            const tokenBalance = await getSPLBalance(token, owner.toString()) // Balance in uiAmount
+            if (tokenBalance > 0) {
+                if (isReplenish) {
+                    const solBalance = await getSolBal(owner.toString())
+                    console.log(`[${payer.publicKey}] Bot SOL and Token balance lower than threshold. Sol: ${solBalance} Token balance: ${tokenBalance}`)
+                    console.log(`[${payer.publicKey}] ${tknBal * tokenPrice} !< ${initialBalance * LOW_BALANCE_THRESHOLD}`)
+                    console.log(`[${payer.publicKey}] Stopping bot for wallet.`)
+                    console.log(`----------------------------------------------`);
+
+                    // WITHDRAW LOGIC FOR THIS WALLET
+                    await withdrawOne(orderId, payer.publicKey.toString());
+                    return;
+                }
+                console.log(`[${payer.publicKey}] Available token balance:`, tokenBalance);
+                await buyTokenRandom(skcrypted, token, initialBalance, orderId, true);
+            }
+            return;
         }
         console.log(`Retrieved token balance for account ${payer.publicKey}: `, tknBal)
         // const tokenBalanceInt = Math.round(tknBal * 1000000)

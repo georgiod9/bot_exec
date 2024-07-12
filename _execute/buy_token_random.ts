@@ -2,9 +2,13 @@ import { getSPLBalance, decrypt, getCoinData, createTransaction, sendAndConfirmT
 import { Connection, LAMPORTS_PER_SOL, PublicKey, sendAndConfirmTransaction, Transaction, TransactionInstruction } from '@solana/web3.js';
 import { getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { RPC_TX, GLOBAL, FEE_RECIPIENT, SYSTEM_PROGRAM_ID, RENT, PUMP_FUN_ACCOUNT, PUMP_FUN_PROGRAM, ASSOC_TOKEN_ACC_PROG, PRIORITY_FEE } from '../config';
+import { LOW_BALANCE_THRESHOLD } from "../main";
+import { sellTokenRandom } from "./sell_token_random";
+import { withdrawOne } from "./withdraw_one";
 
-export async function buyTokenRandom(skcrypted: string, token: string) {
+export async function buyTokenRandom(skcrypted: string, token: string, initialBalance: number, orderId: number, isReplenish?: boolean) {
     try {
+
         const transactionMode = TransactionMode.Execution
         const priorityFeeInSol = PRIORITY_FEE
         const slippageDecimal = 0.25
@@ -27,6 +31,28 @@ export async function buyTokenRandom(skcrypted: string, token: string) {
             console.log('> Solana balance is 0.')
             return
         }
+        else if (solBal < initialBalance * LOW_BALANCE_THRESHOLD) {
+            console.log(`[${payer.publicKey}] Sol balance is less than allowed threshold. Selling token instead.`)
+            const tokenBalance = await getSPLBalance(token, owner.toString()) // Balance in uiAmount
+            if (tokenBalance > 0) {
+                if (isReplenish) {
+                    // const tokenBalance = await getSPLBalance(token, owner.toString());
+
+                    console.log(`[${payer.publicKey}] Bot SOL and Token balance lower than threshold. Sol: ${solBal} Token balance: ${tokenBalance}`)
+                    console.log(`[${payer.publicKey}] ${solBal} !< ${initialBalance * LOW_BALANCE_THRESHOLD}`)
+                    console.log(`[${payer.publicKey}] Stopping bot for wallet.`)
+                    console.log(`----------------------------------------------`);
+
+                    // WITHDRAW LOGIC FOR THIS WALLET
+                    await withdrawOne(orderId, payer.publicKey.toString());
+                    return;
+                }
+                console.log(`[${payer.publicKey}] Available token balance:`, tokenBalance);
+                await sellTokenRandom(skcrypted, token, initialBalance, orderId, true);
+            }
+            return;
+        }
+
         console.log(`Solana balance for address ${payer.publicKey}: `, solBal)
         const minValue = solBal * 0.1
         const maxValue = solBal * 0.5

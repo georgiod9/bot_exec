@@ -207,6 +207,9 @@ export async function getKeyPairFromPrivateKey(key: string) {
     )
 }
 
+export function calculateTokenPriceInSol(solReserves: number, tokenReserves: number) {
+    return (solReserves / tokenReserves) / 1000;
+}
 
 export async function createTransaction(connection: Connection, instructions: TransactionInstruction[], payer: PublicKey, priorityFeeInSol: number = 0): Promise<Transaction> {
     const computeUnits = ComputeBudgetProgram.setComputeUnitLimit({ units: 1450000 })
